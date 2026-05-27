@@ -82,6 +82,16 @@ class BriefingStatusUpdate(BaseModel):
     new_status: str = Field(..., example="in_review")
     hub_notes: Optional[str] = Field(default=None, example="Assigned to creative team.")
 
+# Flat schema for Gemini extraction — no nested types to avoid $ref issues
+class BriefingExtract(BaseModel):
+    campaign_name: str = Field(..., description="A concise, compelling campaign name derived from the document content.")
+    target_market: str = Field(default="UK", description="The primary target market or geographic region. Must be one of: UK, EU, US, APAC, Global.")
+    channels: List[str] = Field(default=[], description="Marketing channels mentioned or implied. Each must be one of: email, push, in_app, social, print, ooh.")
+    deadline: Optional[str] = Field(default=None, description="Any deadline or target date mentioned, in YYYY-MM-DD format. null if not found.")
+    budget_tier: str = Field(default="standard", description="Inferred budget tier based on scope and scale. Must be one of: standard, premium, enterprise.")
+    detailed_brief: str = Field(..., description="A comprehensive campaign brief summarising the key objectives, target audience, messaging strategy, creative direction, and deliverables from the document.")
+    priority: str = Field(default="normal", description="Inferred priority level. Must be one of: low, normal, high, urgent.")
+
 
 # --- ASYNCHRONOUS PIPELINE HELPER ---
 async def generate_single_model_output(
@@ -354,6 +364,108 @@ async def orchestrate_content_supply_chain(payload: CampaignRequest):
         )
 
 # --- BRIEFING MODULE ENDPOINTS ---
+
+@app.post("/api/v1/briefings/extract")
+async def extract_briefing_from_document(file: UploadFile = File(...)):
+    """Upload a document, extract text, and use Gemini to auto-populate briefing fields."""
+    try:
+        filename = file.filename
+        ext = filename.split(".")[-1].lower() if "." in filename else "txt"
+        file_bytes = await file.read()
+        
+        # --- Text extraction (reuses proven logic from asset upload) ---
+        content = ""
+        if ext == "txt":
+            content = file_bytes.decode("utf-8", errors="ignore")
+        elif ext == "pdf":
+            try:
+                from pypdf import PdfReader
+                pdf_file = io.BytesIO(file_bytes)
+                reader = PdfReader(pdf_file)
+                extracted_text = []
+                for page in reader.pages:
+                    page_text = page.extract_text()
+                    if page_text:
+                        extracted_text.append(page_text)
+                content = "\n".join(extracted_text).strip()
+            except Exception as pdf_err:
+                raise HTTPException(status_code=422, detail=f"PDF text extraction failed: {str(pdf_err)}")
+        elif ext in ["ppt", "pptx"]:
+            try:
+                from pptx import Presentation
+                ppt_file = io.BytesIO(file_bytes)
+                prs = Presentation(ppt_file)
+                extracted_text = []
+                for slide in prs.slides:
+                    for shape in slide.shapes:
+                        if hasattr(shape, "text") and shape.text:
+                            extracted_text.append(shape.text)
+                content = "\n".join(extracted_text).strip()
+            except Exception as ppt_err:
+                raise HTTPException(status_code=422, detail=f"PPTX text extraction failed: {str(ppt_err)}")
+        elif ext in ["doc", "docx"]:
+            content = file_bytes.decode("utf-8", errors="ignore")[:5000]
+        else:
+            content = file_bytes.decode("utf-8", errors="ignore")[:5000]
+        
+        if not content.strip() or len(content.strip()) < 20:
+            raise HTTPException(status_code=422, detail="Could not extract sufficient text content from the uploaded document.")
+        
+        # Truncate to avoid token limits while preserving key info
+        content = content[:8000]
+        
+        # --- Gemini structured extraction ---
+        api_key = os.environ.get("GEMINI_API_KEY")
+        if api_key:
+            client = genai.Client(api_key=api_key)
+        else:
+            client = genai.Client()
+        
+        system_instruction = (
+            "You are an expert marketing operations analyst. You are given the raw text content extracted from a campaign document "
+            "(such as a brief, strategy deck, marketing plan, or creative proposal). "
+            "Your task is to carefully read the document and extract structured briefing fields from it.\n\n"
+            "Rules:\n"
+            "- campaign_name: Create a concise, professional campaign name that captures the core theme.\n"
+            "- target_market: Identify the primary geographic market. Must be exactly one of: UK, EU, US, APAC, Global.\n"
+            "- channels: List all marketing channels mentioned or strongly implied. Each must be one of: email, push, in_app, social, print, ooh.\n"
+            "- deadline: Extract any deadline or target date in YYYY-MM-DD format. Use null if none found.\n"
+            "- budget_tier: Infer from the scope and ambition. Must be one of: standard, premium, enterprise.\n"
+            "- detailed_brief: Write a comprehensive summary (3-5 sentences) covering objectives, target audience, key messages, creative direction, and deliverables.\n"
+            "- priority: Infer from urgency cues in the document. Must be one of: low, normal, high, urgent.\n\n"
+            "Return ONLY the JSON object matching the exact schema provided. Do not add extra fields."
+        )
+        
+        response = await client.aio.models.generate_content(
+            model="gemini-2.5-flash",
+            contents=f"Extract structured briefing fields from this campaign document:\n\n{content}",
+            config=types.GenerateContentConfig(
+                system_instruction=system_instruction,
+                response_mime_type="application/json",
+                response_schema=BriefingExtract,
+                temperature=0.1,
+            ),
+        )
+        
+        if not response.text:
+            raise HTTPException(status_code=500, detail="Gemini returned an empty response.")
+        
+        extracted = BriefingExtract.model_validate_json(response.text)
+        
+        return {
+            "status": "success",
+            "source_filename": filename,
+            "source_file_type": ext,
+            "extracted_text_length": len(content),
+            "fields": extracted.model_dump()
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"Briefing extraction failed: {str(e)}")
 
 @app.post("/api/v1/briefings")
 async def submit_briefing(payload: BriefingRequest):

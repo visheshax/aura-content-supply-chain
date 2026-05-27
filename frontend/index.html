@@ -487,9 +487,35 @@
                         <h3 class="text-xs font-bold uppercase tracking-wider text-[#2DD4BF] mb-4 flex items-center gap-2">
                             📤 Submit Campaign Briefing
                         </h3>
-                        <p class="text-xs text-gray-400 mb-5 leading-relaxed font-medium">
-                            Complete the request form below. Your briefing will be routed to the hub team for review and execution.
+                        <p class="text-xs text-gray-400 mb-4 leading-relaxed font-medium">
+                            Upload a document to auto-extract fields using AI, or fill in manually. All fields remain editable after extraction.
                         </p>
+
+                        <!-- AI DOCUMENT UPLOAD ZONE -->
+                        <div class="mb-5">
+                            <div id="briefing-drop-zone" class="border-2 border-dashed border-[#152035] hover:border-[#6366F1]/60 bg-[#070B13] rounded-2xl p-5 text-center cursor-pointer transition-all duration-300 relative">
+                                <input type="file" id="briefing-file-input" class="hidden" accept=".pdf,.ppt,.pptx,.txt,.doc,.docx">
+                                <div id="briefing-upload-idle">
+                                    <div class="text-2xl mb-1.5">🧠</div>
+                                    <p class="text-xs font-bold text-white">Upload document for AI extraction</p>
+                                    <p class="text-[10px] text-gray-500 mt-1">Drop a brief, deck, or plan — Gemini will auto-fill the form</p>
+                                    <p class="text-[9px] text-[#6366F1] font-mono mt-2 uppercase tracking-wider">PDF, PPTX, TXT, DOCX</p>
+                                </div>
+                                <div id="briefing-upload-progress" class="hidden">
+                                    <div class="flex items-center justify-center gap-3">
+                                        <div class="h-5 w-5 border-2 border-[#6366F1] border-t-transparent rounded-full animate-spin"></div>
+                                        <div>
+                                            <p class="text-xs font-bold text-white">✨ Gemini is reading your document…</p>
+                                            <p class="text-[10px] text-gray-500 mt-0.5" id="briefing-extract-status">Extracting text and analysing content</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div id="briefing-source-badge" class="hidden mt-2 flex items-center gap-2 px-3 py-1.5 bg-[#17162A]/40 border border-[#2B2A4F]/50 rounded-xl">
+                                <span class="text-[9px] font-mono text-indigo-400 font-bold uppercase tracking-wider">✨ AI-Extracted from:</span>
+                                <span class="text-[10px] font-bold text-white" id="briefing-source-filename">document.pdf</span>
+                            </div>
+                        </div>
 
                         <div class="space-y-4">
                             <!-- Campaign Name -->
@@ -1114,6 +1140,152 @@
             }, 30000);
         }
         startBriefingRefresh();
+
+        // --- BRIEFING DOCUMENT UPLOAD & AI EXTRACTION ---
+        let briefingUploadedFile = null;
+
+        document.addEventListener("DOMContentLoaded", () => {
+            const dropZone = document.getElementById("briefing-drop-zone");
+            const fileInput = document.getElementById("briefing-file-input");
+
+            if (dropZone && fileInput) {
+                dropZone.addEventListener("click", () => fileInput.click());
+
+                fileInput.addEventListener("change", (e) => {
+                    if (e.target.files.length > 0) {
+                        briefingUploadedFile = e.target.files[0];
+                        extractBriefingFromDoc();
+                    }
+                });
+
+                dropZone.addEventListener("dragover", (e) => {
+                    e.preventDefault();
+                    dropZone.classList.add("border-[#6366F1]", "bg-[#6366F1]/10");
+                });
+
+                ["dragleave", "dragend"].forEach(type => {
+                    dropZone.addEventListener(type, () => {
+                        dropZone.classList.remove("border-[#6366F1]", "bg-[#6366F1]/10");
+                    });
+                });
+
+                dropZone.addEventListener("drop", (e) => {
+                    e.preventDefault();
+                    dropZone.classList.remove("border-[#6366F1]", "bg-[#6366F1]/10");
+                    if (e.dataTransfer.files.length > 0) {
+                        briefingUploadedFile = e.dataTransfer.files[0];
+                        extractBriefingFromDoc();
+                    }
+                });
+            }
+        });
+
+        async function extractBriefingFromDoc() {
+            if (!briefingUploadedFile) return;
+
+            const idleState = document.getElementById('briefing-upload-idle');
+            const progressState = document.getElementById('briefing-upload-progress');
+            const statusText = document.getElementById('briefing-extract-status');
+            const sourceBadge = document.getElementById('briefing-source-badge');
+
+            // Show loading state
+            idleState.classList.add('hidden');
+            progressState.classList.remove('hidden');
+            statusText.textContent = 'Extracting text and analysing content…';
+
+            try {
+                const formData = new FormData();
+                formData.append('file', briefingUploadedFile);
+
+                statusText.textContent = 'Sending to Gemini for structured extraction…';
+
+                const res = await fetch(`${DEPLOYED_BACKEND_URL}/api/v1/briefings/extract`, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (!res.ok) {
+                    const err = await res.json().catch(() => ({}));
+                    throw new Error(err.detail || 'Extraction failed.');
+                }
+
+                const data = await res.json();
+                const fields = data.fields;
+
+                // Auto-populate all form fields
+                if (fields.campaign_name) {
+                    document.getElementById('brief-campaign-name').value = fields.campaign_name;
+                }
+
+                if (fields.target_market) {
+                    const marketSelect = document.getElementById('brief-target-market');
+                    const validMarkets = ['UK', 'EU', 'US', 'APAC', 'Global'];
+                    if (validMarkets.includes(fields.target_market)) {
+                        marketSelect.value = fields.target_market;
+                    }
+                }
+
+                if (fields.channels && fields.channels.length > 0) {
+                    // Reset existing selections
+                    selectedChannels = [];
+                    document.querySelectorAll('.channel-chip').forEach(btn => {
+                        btn.className = 'channel-chip px-3 py-1.5 text-[10px] bg-[#11222E]/60 border border-[#152035] text-gray-400 rounded-lg font-bold transition-all duration-200 cursor-pointer hover:border-[#0D9488]/60';
+                    });
+                    // Activate extracted channels
+                    fields.channels.forEach(ch => {
+                        const chipButtons = document.querySelectorAll('.channel-chip');
+                        chipButtons.forEach(btn => {
+                            const btnChannel = btn.getAttribute('onclick')?.match(/'([^']+)'/)?.[1];
+                            if (btnChannel === ch) {
+                                selectedChannels.push(ch);
+                                btn.className = 'channel-chip px-3 py-1.5 text-[10px] bg-[#0D9488]/20 border border-[#0D9488] text-[#2DD4BF] rounded-lg font-bold transition-all duration-200 cursor-pointer';
+                            }
+                        });
+                    });
+                }
+
+                if (fields.deadline) {
+                    document.getElementById('brief-deadline').value = fields.deadline;
+                }
+
+                if (fields.budget_tier) {
+                    const budgetSelect = document.getElementById('brief-budget-tier');
+                    const validTiers = ['standard', 'premium', 'enterprise'];
+                    if (validTiers.includes(fields.budget_tier)) {
+                        budgetSelect.value = fields.budget_tier;
+                    }
+                }
+
+                if (fields.priority) {
+                    selectPriority(fields.priority);
+                }
+
+                if (fields.detailed_brief) {
+                    document.getElementById('brief-detailed').value = fields.detailed_brief;
+                }
+
+                // Show source badge
+                document.getElementById('briefing-source-filename').textContent = data.source_filename;
+                sourceBadge.classList.remove('hidden');
+
+                // Briefly flash form fields to indicate auto-fill
+                const formFields = document.querySelectorAll('#briefings-view-container input, #briefings-view-container textarea, #briefings-view-container select');
+                formFields.forEach(field => {
+                    field.style.borderColor = '#6366F1';
+                    setTimeout(() => { field.style.borderColor = ''; }, 2000);
+                });
+
+                showToast('AI Extraction Complete', `${Object.keys(fields).length} fields auto-populated from ${data.source_filename}. Review and edit as needed.`, '🧠');
+
+            } catch(e) {
+                console.error(e);
+                showToast('Extraction Failed', e.message || 'Could not extract briefing from document.', '❌');
+            } finally {
+                // Restore idle state
+                progressState.classList.add('hidden');
+                idleState.classList.remove('hidden');
+            }
+        }
 
         function changeIndustry(industryKey) {
             activeIndustry = industryKey;

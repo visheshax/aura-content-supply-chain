@@ -1,0 +1,994 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aura OmniNexus | Agentic Content Supply Chain Cockpit</title>
+    <!-- Tailwind CSS v4 CDN for on-the-fly execution -->
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap');
+        
+        body { 
+            font-family: 'Outfit', sans-serif; 
+            background-color: #070B13; /* Deep, rich off-black slate with cool indigo/teal undertone */
+        }
+        
+        .font-mono {
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        /* Sleek custom brand scrollbars */
+        ::-webkit-scrollbar {
+            width: 5px;
+            height: 5px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #070B13;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #111A2E;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #0D9488; /* Aura Deep Teal */
+        }
+
+        /* Pulsing ring animation for the telemetry steps */
+        @keyframes ring-pulse {
+            0% { box-shadow: 0 0 0 0 rgba(13, 148, 136, 0.4); }
+            70% { box-shadow: 0 0 0 6px rgba(13, 148, 136, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(13, 148, 136, 0); }
+        }
+        .active-telemetry {
+            animation: ring-pulse 1.5s infinite;
+        }
+
+        /* Premium brand gradient background overlay */
+        .brand-radial-glow {
+            background: radial-gradient(circle at 50% -20%, rgba(13, 148, 136, 0.08) 0%, rgba(99, 102, 241, 0.03) 50%, transparent 100%);
+        }
+    </style>
+</head>
+<body class="text-gray-100 antialiased min-h-screen flex brand-radial-glow">
+
+    <!-- SIDEBAR PANELS (OFFICIAL BRAND THEME) -->
+    <aside class="w-68 bg-[#0B0F19]/90 border-r border-[#152035]/80 flex flex-col justify-between shrink-0 backdrop-blur-lg">
+        <div>
+            <!-- HIGH FIDELITY AURA EMBLEM INTEGRATION -->
+            <div class="p-6 flex items-center gap-3.5 border-b border-[#152035]/60">
+                <!-- SVG Aura Abstract Energy Loop Symbol -->
+                <svg class="h-10 w-10 shrink-0" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                        <linearGradient id="auraGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" stop-color="#06B6D4" /> <!-- Cyan -->
+                            <stop offset="50%" stop-color="#0D9488" /> <!-- Teal -->
+                            <stop offset="100%" stop-color="#6366F1" /> <!-- Indigo -->
+                        </linearGradient>
+                    </defs>
+                    <!-- Elegant double loop infinity shape symbolizing sustainable energy flow -->
+                    <path d="M50 15C30 15 15 30 15 50C15 70 30 85 50 85C65 85 78 72 82 58C83 55 81 52 78 52C75 52 73 54 72 56C69 66 59 75 50 75C35 75 25 64 25 50C25 36 35 25 50 25C65 25 75 36 75 50C75 53 77 55 80 55C83 55 85 53 85 50C85 30 70 15 50 15Z" fill="url(#auraGrad)" />
+                    <!-- Aura core light dot -->
+                    <circle cx="50" cy="50" r="7" fill="#2DD4BF" />
+                </svg>
+                <div>
+                    <h1 class="text-base font-extrabold tracking-tight text-white leading-none">Aura <span class="text-[9px] font-medium text-[#2DD4BF] font-mono bg-[#111A2E] px-1.5 py-0.5 rounded border border-[#1C2C4C] ml-0.5">OmniNexus</span></h1>
+                    <p class="text-[9px] text-gray-400 font-semibold uppercase tracking-widest mt-1">MarTech Supply Chain</p>
+                </div>
+            </div>
+            
+            <nav class="p-4 space-y-1.5">
+                <button id="btn-nav-campaign" onclick="switchTab('campaign')" class="w-full flex items-center gap-3 px-4 py-3 bg-[#11222E]/60 text-[#2DD4BF] rounded-xl text-xs font-semibold border border-[#1B364A]/60 shadow-sm transition-all duration-200 cursor-pointer">
+                    <svg class="h-4.5 w-4.5 text-[#2DD4BF]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                    </svg>
+                    📂 Campaign Pipelines
+                </button>
+                <button id="btn-nav-compliance" onclick="switchTab('compliance')" class="w-full flex items-center gap-3 px-4 py-3 text-gray-400 hover:bg-[#11222E]/30 hover:text-gray-200 rounded-xl text-xs font-semibold transition-all duration-200 cursor-pointer">
+                    <svg class="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                    </svg>
+                    🛡️ Compliance Sandbox
+                </button>
+                <button id="btn-nav-dam" onclick="switchTab('dam')" class="w-full flex items-center gap-3 px-4 py-3 text-gray-400 hover:bg-[#11222E]/30 hover:text-gray-200 rounded-xl text-xs font-semibold transition-all duration-200 cursor-pointer">
+                    <svg class="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    📊 Digital Asset Library
+                </button>
+            </nav>
+        </div>
+        
+        <!-- PRINCIPAL INFO CARD -->
+        <div class="p-4 border-t border-[#152035]/60 bg-[#070B13]/60 flex items-center gap-3">
+            <div class="h-9 w-9 bg-gradient-to-tr from-[#0D9488] to-[#6366F1] rounded-xl flex items-center justify-center text-xs font-bold text-white shadow-md">VA</div>
+            <div>
+                <p class="text-xs font-bold text-white">Vishesh Agarwal</p>
+                <p class="text-[9px] text-[#2DD4BF] font-mono tracking-wider">Principal MarTech Architect</p>
+            </div>
+        </div>
+    </aside>
+
+    <!-- MAIN PANEL -->
+    <main class="flex-1 p-8 overflow-y-auto max-w-7xl mx-auto space-y-6">
+        
+        <!-- HEADER SYSTEM STATUS -->
+        <header class="flex flex-col sm:flex-row justify-between sm:items-center gap-4 bg-[#0B0F19]/80 p-6 rounded-2xl border border-[#152035]/80 shadow-xl backdrop-blur-md">
+            <div>
+                <div class="flex items-center gap-2.5">
+                    <h2 id="header-view-title" class="text-lg font-extrabold text-white tracking-tight">Agentic Content Supply Chain Cockpit</h2>
+                    <span class="text-[9px] font-mono text-[#2DD4BF] bg-[#11222E] px-2 py-0.5 rounded border border-[#1B364A]/80 font-bold uppercase tracking-wider">Demo Simulation Mode</span>
+                </div>
+                <p id="header-view-desc" class="text-xs text-gray-400 mt-1">Symmetrical side-by-side LLM strategic profile comparison and UK ASA regulatory check verification panel.</p>
+            </div>
+            <div class="flex items-center gap-2.5 px-4 py-2 bg-[#11222E]/60 rounded-full border border-[#1B364A]/60 w-fit">
+                <span class="h-2 w-2 rounded-full bg-[#0D9488] animate-pulse active-telemetry"></span>
+                <span class="text-[10px] font-mono font-bold text-[#2DD4BF] tracking-wide uppercase">Official API Connected</span>
+            </div>
+        </header>
+
+        <!-- VIEW CONTAINER 1: CAMPAIGN PIPELINES -->
+        <div id="campaign-view-container" class="space-y-6">
+            <!-- INPUT BRIEF AND GREENWASHING SANDBOX -->
+            <section class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                
+                <!-- BRIEF FORM CARD -->
+                <div class="lg:col-span-2 bg-[#0B0F19]/80 p-6 rounded-2xl border border-[#152035]/80 shadow-lg flex flex-col justify-between space-y-5 hover:border-[#1B364A]/60 transition-all duration-300 backdrop-blur-md">
+                    <div>
+                        <div class="mb-4">
+                            <span class="block text-[10px] font-bold uppercase tracking-widest text-[#2DD4BF] mb-2.5 font-mono">1. Select Active Industry Vertical</span>
+                            <div id="industry-selector-group" class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                                <button onclick="changeIndustry('automotive')" id="ind-btn-automotive" class="industry-tab px-3.5 py-2.5 bg-[#0D9488]/20 border border-[#0D9488] hover:border-[#2DD4BF] text-[#2DD4BF] text-[10px] font-bold rounded-xl flex items-center justify-center gap-1.5 transition-all duration-200 cursor-pointer">
+                                    🚗 Automotive
+                                </button>
+                                <button onclick="changeIndustry('cpg')" id="ind-btn-cpg" class="industry-tab px-3.5 py-2.5 bg-[#11222E]/60 border border-[#152035] hover:border-[#6366F1] hover:text-gray-200 text-gray-400 text-[10px] font-bold rounded-xl flex items-center justify-center gap-1.5 transition-all duration-200 cursor-pointer">
+                                    🛍️ CPG & Retail
+                                </button>
+                                <button onclick="changeIndustry('energy')" id="ind-btn-energy" class="industry-tab px-3.5 py-2.5 bg-[#11222E]/60 border border-[#152035] hover:border-[#6366F1] hover:text-gray-200 text-gray-400 text-[10px] font-bold rounded-xl flex items-center justify-center gap-1.5 transition-all duration-200 cursor-pointer">
+                                    ⚡ Energy & Util
+                                </button>
+                                <button onclick="changeIndustry('tech')" id="ind-btn-tech" class="industry-tab px-3.5 py-2.5 bg-[#11222E]/60 border border-[#152035] hover:border-[#6366F1] hover:text-gray-200 text-gray-400 text-[10px] font-bold rounded-xl flex items-center justify-center gap-1.5 transition-all duration-200 cursor-pointer">
+                                    💻 Tech & Telecom
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="mt-4">
+                            <label class="block text-[10px] font-bold uppercase tracking-widest text-[#2DD4BF] mb-2 font-mono">2. Campaign Brief & Directives</label>
+                            <textarea id="campaign-brief" rows="4" class="w-full bg-[#070B13] border border-[#152035] rounded-xl p-4 text-xs text-gray-200 focus:outline-none focus:border-[#0D9488] font-medium leading-relaxed resize-none transition-all duration-300" placeholder="Enter high-level market directive..."></textarea>
+                        </div>
+
+                        <div class="mt-3.5">
+                            <div class="flex flex-wrap gap-2 items-center">
+                                <span class="text-[9px] text-gray-500 font-mono uppercase tracking-wider mr-1">Suggested Presets:</span>
+                                <div id="presets-container" class="flex flex-wrap gap-2">
+                                    <!-- Loaded dynamically -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button onclick="initiateAgentPipeline()" class="w-full py-4 bg-gradient-to-r from-[#0D9488] to-[#6366F1] hover:from-[#0fbdae] hover:to-[#7a7df3] text-white rounded-xl text-xs font-black tracking-widest shadow-lg shadow-[#0D9488]/10 active:scale-[0.99] transition transform duration-150 cursor-pointer">
+                        ⚡ RUN PARALLEL COMPARISON FRAMEWORK
+                    </button>
+                </div>
+
+                <!-- REGULATORY SANDBOX OVERVIEW -->
+                <div class="bg-[#0B0F19]/80 p-6 rounded-2xl border border-[#152035]/80 shadow-lg flex flex-col justify-between hover:border-[#1B364A]/60 transition-all duration-300 backdrop-blur-md">
+                    <div class="space-y-3">
+                        <h3 class="text-xs font-bold uppercase tracking-wider text-[#2DD4BF] flex items-center gap-2">
+                            <svg class="h-4.5 w-4.5 text-[#2DD4BF]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                            </svg>
+                            ASA Environmental Guardrails
+                        </h3>
+                        <p class="text-xs text-gray-400 leading-relaxed font-medium">
+                            Both strategic profiles undergo real-time brand governance scans in parallel to enforce strict advertising compliance.
+                        </p>
+                        <p class="text-xs text-gray-400 leading-relaxed font-medium">
+                            Compare how **Gemini 2.5 Flash** responds under different creative and compliance directives to balance factual accuracy with marketing appeal.
+                        </p>
+                    </div>
+                    <div class="p-4 bg-[#070B13] rounded-xl border border-[#152035] space-y-2.5 mt-4">
+                        <div class="flex justify-between items-center text-[10px]"><span class="text-gray-400 font-semibold uppercase tracking-wider">Comparative Analytics</span> <span class="text-[#2DD4BF] font-bold font-mono">Concurrent</span></div>
+                        <div class="flex justify-between items-center text-[10px]"><span class="text-gray-400 font-semibold uppercase tracking-wider">UK ASA Standards Scan</span> <span class="text-[#2DD4BF] font-bold font-mono">Enforced</span></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- LIVE TELEMETRY SIMULATION PANEL -->
+            <section id="pipeline-telemetry-panel" class="hidden bg-[#0B0F19]/80 p-6 rounded-2xl border border-[#152035]/80 shadow-md space-y-5 backdrop-blur-md">
+                <h3 class="text-xs font-bold uppercase tracking-wider text-gray-300 border-b border-[#152035]/60 pb-2 flex justify-between items-center">
+                    <span>Dual-Engine Pipeline Telemetry Stream</span>
+                    <span class="text-[9px] font-mono text-[#2DD4BF] bg-[#11222E] px-2 py-0.5 rounded border border-[#1B364A]/60">Active Generation Traces</span>
+                </h3>
+                
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <!-- FLASH TELEMETRY (TEAL HIGHLIGHT) -->
+                    <div class="space-y-3.5">
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs font-extrabold text-[#2DD4BF]">⚡ Gemini 2.5 Flash (Operational Profile)</span>
+                            <span class="h-1.5 w-1.5 rounded-full bg-[#0D9488] animate-pulse"></span>
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                            <div id="step-1-flash" class="p-3 bg-[#070B13] rounded-xl border border-[#152035] flex items-center gap-2.5">
+                                <div class="spinner h-3.5 w-3.5 border-2 border-[#0D9488] border-t-transparent rounded-full animate-spin"></div>
+                                <span class="text-[10px] font-bold text-gray-400">A: Localize</span>
+                            </div>
+                            <div id="step-2-flash" class="p-3 bg-[#070B13] rounded-xl border border-[#152035] flex items-center gap-2.5 opacity-40">
+                                <div class="dot h-1.5 w-1.5 rounded-full bg-gray-600"></div>
+                                <span class="text-[10px] font-bold text-gray-400">B: Visuals</span>
+                            </div>
+                            <div id="step-3-flash" class="p-3 bg-[#070B13] rounded-xl border border-[#152035] flex items-center gap-2.5 opacity-40">
+                                <div class="dot h-1.5 w-1.5 rounded-full bg-gray-600"></div>
+                                <span class="text-[10px] font-bold text-gray-400">C: Compliance</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- PRO TELEMETRY (INDIGO HIGHLIGHT) -->
+                    <div class="space-y-3.5">
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs font-extrabold text-[#6366F1]">🎨 Gemini 2.5 Flash (Creative Profile)</span>
+                            <span class="h-1.5 w-1.5 rounded-full bg-[#6366F1] animate-pulse"></span>
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                            <div id="step-1-pro" class="p-3 bg-[#070B13] rounded-xl border border-[#152035] flex items-center gap-2.5">
+                                <div class="spinner h-3.5 w-3.5 border-2 border-[#6366F1] border-t-transparent rounded-full animate-spin"></div>
+                                <span class="text-[10px] font-bold text-gray-400">A: Localize</span>
+                            </div>
+                            <div id="step-2-pro" class="p-3 bg-[#070B13] rounded-xl border border-[#152035] flex items-center gap-2.5 opacity-40">
+                                <div class="dot h-1.5 w-1.5 rounded-full bg-gray-600"></div>
+                                <span class="text-[10px] font-bold text-gray-400">B: Visuals</span>
+                            </div>
+                            <div id="step-3-pro" class="p-3 bg-[#070B13] rounded-xl border border-[#152035] flex items-center gap-2.5 opacity-40">
+                                <div class="dot h-1.5 w-1.5 rounded-full bg-gray-600"></div>
+                                <span class="text-[10px] font-bold text-gray-400">C: Compliance</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ERROR STATE BANNER -->
+            <div id="error-banner" class="hidden p-4.5 bg-red-950/30 border border-red-900/50 text-red-400 rounded-xl text-xs font-bold items-center gap-3 shadow-md">
+                <span>⚠️</span> 
+                <span id="error-message">Pipeline runtime execution error occurred.</span>
+            </div>
+
+            <!-- RAG VECTOR RETRIEVAL DISPLAY -->
+            <div id="rag-retrieval-banner" class="hidden bg-[#0A1622]/90 border border-teal-500/30 p-5 rounded-2xl shadow-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4 backdrop-blur-md">
+                <div class="flex items-start gap-4">
+                    <div class="h-10 w-10 shrink-0 bg-teal-950/40 border border-teal-500/40 rounded-xl flex items-center justify-center text-teal-400 font-mono text-sm shadow-inner">
+                        📄
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs font-bold text-white uppercase tracking-wider" id="rag-filename">Aura_Brand_Guidelines_v4.pdf</span>
+                            <span class="text-[9px] font-bold uppercase tracking-wider text-teal-400 font-mono bg-[#11222E] px-2 py-0.5 rounded border border-[#1B364A]">pgvector RAG Hit</span>
+                        </div>
+                        <p class="text-xs text-gray-400 mt-1 italic font-medium" id="rag-chunk">"Aura brand colors are defined by deep Teal (#0D9488) representing structure, and Royal Indigo (#6366F1) representing creative freedom."</p>
+                    </div>
+                </div>
+                <div class="shrink-0 flex flex-col items-end">
+                    <span class="text-[10px] font-bold text-gray-500 font-mono uppercase">Match Score</span>
+                    <span class="text-base font-extrabold text-[#2DD4BF] font-mono mt-0.5" id="rag-score">94.2%</span>
+                </div>
+            </div>
+
+            <!-- STAGE OUTPUT AREA (COMPARISON WORKSPACE) -->
+            <section id="production-output-area" class="hidden grid grid-cols-1 xl:grid-cols-2 gap-8">
+                
+                <!-- LEFT PANEL: GEMINI 2.5 FLASH OPERATIONAL (TEAL PANE) -->
+                <div class="bg-[#0B0F19]/90 p-6 rounded-2xl border border-[#152035]/80 shadow-xl space-y-6 hover:border-[#0D9488]/40 transition-all duration-300 backdrop-blur-md">
+                    <div class="flex justify-between items-center border-b border-[#152035]/60 pb-3">
+                        <div class="flex items-center gap-2.5">
+                            <span class="text-xs font-extrabold uppercase px-2.5 py-1.5 bg-[#11222E] text-[#2DD4BF] border border-[#1B364A]/60 rounded-xl">⚡ Gemini 2.5 Flash (Operational)</span>
+                        </div>
+                        <span class="text-[10px] text-gray-400 font-mono bg-[#070B13] px-2 py-0.5 rounded border border-[#152035]">Temp 0.1</span>
+                    </div>
+
+                    <!-- Email & Banner Copy -->
+                    <div class="space-y-4">
+                        <div>
+                            <span class="text-[10px] uppercase font-mono font-bold tracking-wider text-[#2DD4BF] bg-[#11222E]/60 px-2.5 py-1 rounded border border-[#1B364A]/60">Email Output</span>
+                            <div class="mt-2.5 p-4 bg-[#070B13] rounded-xl border border-[#152035] text-xs">
+                                <p class="font-extrabold border-b border-[#152035]/60 pb-2.5 mb-2.5 text-white" id="out-email-subject-flash">Subject...</p>
+                                <p class="whitespace-pre-line leading-relaxed text-gray-300 font-medium" id="out-email-body-flash">Body text...</p>
+                            </div>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <span class="text-[10px] uppercase font-mono font-bold tracking-wider text-[#2DD4BF] bg-[#11222E]/60 px-2.5 py-1 rounded border border-[#1B364A]/60">Mobile App Push</span>
+                                <div class="mt-2.5 p-4 bg-[#070B13] rounded-xl border border-[#152035] text-xs text-gray-300 leading-relaxed font-semibold" id="out-push-flash">Push...</div>
+                            </div>
+                            <div>
+                                <span class="text-[10px] uppercase font-mono font-bold tracking-wider text-[#2DD4BF] bg-[#11222E]/60 px-2.5 py-1 rounded border border-[#1B364A]/60">In-App Banner</span>
+                                <div class="mt-2.5 p-4 bg-[#070B13] rounded-xl border border-[#152035] text-xs text-gray-300 leading-relaxed font-semibold" id="out-banner-flash">Banner...</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Compliance Check & Safety Shield -->
+                    <div class="bg-[#070B13]/60 p-5 rounded-xl border border-[#152035] space-y-4">
+                        <h4 class="text-xs font-bold uppercase tracking-wider text-gray-300 flex items-center gap-2">🛡️ Safety & Brand Shield</h4>
+                        <div id="compliance-badge-wrapper-flash"></div>
+                        <div class="space-y-2 text-xs">
+                            <div class="flex items-center gap-2 text-gray-300 font-semibold" id="chk-greenwashing-flash">Checking...</div>
+                            <div class="flex items-center gap-2 text-gray-300 font-semibold" id="chk-pricing-flash">Checking...</div>
+                        </div>
+                        <div class="p-3 bg-[#070B13] rounded-xl border border-[#152035] text-[11px] text-gray-400 leading-relaxed font-medium italic" id="out-risk-summary-flash">Summary...</div>
+                    </div>
+
+                    <!-- Image Assets -->
+                    <div class="space-y-3">
+                        <div class="flex justify-between items-center bg-[#070B13] px-3.5 py-2.5 rounded-xl border border-[#152035]">
+                            <span class="text-[10px] font-mono text-gray-400 font-bold uppercase">Asset Token:</span>
+                            <span id="out-asset-token-flash" class="text-xs font-mono font-extrabold text-[#2DD4BF] uppercase tracking-wide">None</span>
+                        </div>
+                        <div id="dynamic-image-container-flash" class="h-44 w-full bg-cover bg-center rounded-xl border border-[#152035] grayscale brightness-75 transition-all duration-500 shadow-md"></div>
+                    </div>
+                </div>
+
+                <!-- RIGHT PANEL: GEMINI 2.5 FLASH CREATIVE (INDIGO PANE) -->
+                <div class="bg-[#0B0F19]/90 p-6 rounded-2xl border border-[#152035]/80 shadow-xl space-y-6 hover:border-[#6366F1]/30 transition-all duration-300 backdrop-blur-md">
+                    <div class="flex justify-between items-center border-b border-[#152035]/60 pb-3">
+                        <div class="flex items-center gap-2.5">
+                            <span class="text-xs font-extrabold uppercase px-2.5 py-1.5 bg-[#17162A] text-indigo-400 border border-[#2B2A4F]/60 rounded-xl">🎨 Gemini 2.5 Flash (Creative)</span>
+                        </div>
+                        <span class="text-[10px] text-gray-400 font-mono bg-[#070B13] px-2 py-0.5 rounded border border-[#152035]">Temp 0.8</span>
+                    </div>
+
+                    <!-- Email & Banner Copy -->
+                    <div class="space-y-4">
+                        <div>
+                            <span class="text-[10px] uppercase font-mono font-bold tracking-wider text-indigo-400 bg-[#17162A]/60 px-2.5 py-1 rounded border border-[#2B2A4F]/60">Email Output</span>
+                            <div class="mt-2.5 p-4 bg-[#070B13] rounded-xl border border-[#152035] text-xs">
+                                <p class="font-extrabold border-b border-[#152035]/60 pb-2.5 mb-2.5 text-white" id="out-email-subject-pro">Subject...</p>
+                                <p class="whitespace-pre-line leading-relaxed text-gray-300 font-medium" id="out-email-body-pro">Body text...</p>
+                            </div>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <span class="text-[10px] uppercase font-mono font-bold tracking-wider text-indigo-400 bg-[#17162A]/60 px-2.5 py-1 rounded border border-[#2B2A4F]/60">Mobile App Push</span>
+                                <div class="mt-2.5 p-4 bg-[#070B13] rounded-xl border border-[#152035] text-xs text-gray-300 leading-relaxed font-semibold" id="out-push-pro">Push...</div>
+                            </div>
+                            <div>
+                                <span class="text-[10px] uppercase font-mono font-bold tracking-wider text-indigo-400 bg-[#17162A]/60 px-2.5 py-1 rounded border border-[#2B2A4F]/60">In-App Banner</span>
+                                <div class="mt-2.5 p-4 bg-[#070B13] rounded-xl border border-[#152035] text-xs text-gray-300 leading-relaxed font-semibold" id="out-banner-pro">Banner...</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Compliance Check & Safety Shield -->
+                    <div class="bg-[#070B13]/60 p-5 rounded-xl border border-[#152035] space-y-4">
+                        <h4 class="text-xs font-bold uppercase tracking-wider text-gray-300 flex items-center gap-2">🛡️ Safety & Brand Shield</h4>
+                        <div id="compliance-badge-wrapper-pro"></div>
+                        <div class="space-y-2 text-xs">
+                            <div class="flex items-center gap-2 text-gray-300 font-semibold" id="chk-greenwashing-pro">Checking...</div>
+                            <div class="flex items-center gap-2 text-gray-300 font-semibold" id="chk-pricing-pro">Checking...</div>
+                        </div>
+                        <div class="p-3 bg-[#070B13] rounded-xl border border-[#152035] text-[11px] text-gray-400 leading-relaxed font-medium italic" id="out-risk-summary-pro">Summary...</div>
+                    </div>
+
+                    <!-- Image Assets -->
+                    <div class="space-y-3">
+                        <div class="flex justify-between items-center bg-[#070B13] px-3.5 py-2.5 rounded-xl border border-[#152035]">
+                            <span class="text-[10px] font-mono text-gray-400 font-bold uppercase">Asset Token:</span>
+                            <span id="out-asset-token-pro" class="text-xs font-mono font-extrabold text-indigo-400 uppercase tracking-wide">None</span>
+                        </div>
+                        <div id="dynamic-image-container-pro" class="h-44 w-full bg-cover bg-center rounded-xl border border-[#152035] grayscale brightness-75 transition-all duration-500 shadow-md"></div>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- VIEW CONTAINER 2: COMPLIANCE SANDBOX (Coming Soon Mockup) -->
+        <div id="compliance-view-container" class="hidden space-y-6">
+            <div class="bg-[#0B0F19]/80 p-8 rounded-2xl border border-[#152035]/80 text-center max-w-2xl mx-auto space-y-4 backdrop-blur-md py-12">
+                <div class="text-4xl">🛡️</div>
+                <h3 class="text-lg font-bold text-white">Compliance Sandbox Environment</h3>
+                <p class="text-xs text-gray-400 leading-relaxed">
+                    Interactive sandbox for simulating Advertising Standards Authority (ASA) compliance standards and CMA Greenwashing guidelines. Copy comparison, live feedback, and compliance remediation guides.
+                </p>
+                <span class="inline-block text-[9px] font-mono text-[#2DD4BF] bg-[#11222E] px-3 py-1 rounded-full border border-[#1B364A] uppercase tracking-wider font-bold">Standard Suite Active in Pipeline Runs</span>
+            </div>
+        </div>
+
+        <!-- VIEW CONTAINER 3: PGVECTOR DIGITAL ASSET LIBRARY (DAM) -->
+        <div id="dam-view-container" class="hidden space-y-6 animate-fadeIn">
+            
+            <section class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- UPLOAD / VECTORISE FORM CARD -->
+                <div class="bg-[#0B0F19]/80 p-6 rounded-2xl border border-[#152035]/80 shadow-lg flex flex-col justify-between space-y-5 hover:border-[#1B364A]/60 transition-all duration-300 backdrop-blur-md">
+                    <div>
+                        <h3 class="text-xs font-bold uppercase tracking-wider text-[#2DD4BF] mb-4 flex items-center gap-2">
+                            📤 Upload & Index Document
+                        </h3>
+                        <p class="text-xs text-gray-400 mb-4 leading-relaxed font-medium">
+                            Select or drag and drop any file (PDF, PPTX, Image, GIF, TXT) to upload, extract text, and automatically generate pgvector HNSW semantic index layers.
+                        </p>
+
+                        <div class="space-y-4">
+                            <!-- Drag & Drop Zone -->
+                            <div id="drop-zone" class="border-2 border-dashed border-[#152035] hover:border-[#0D9488]/60 bg-[#070B13] rounded-2xl p-6 text-center cursor-pointer transition-all duration-300">
+                                <input type="file" id="file-input" class="hidden" accept=".pdf,.ppt,.pptx,.png,.jpg,.jpeg,.gif,.txt">
+                                <div class="text-3xl mb-2">📁</div>
+                                <p class="text-xs font-bold text-white">Drag & Drop file here</p>
+                                <p class="text-[10px] text-gray-500 mt-1">or click to browse from device</p>
+                                <p class="text-[9px] text-[#2DD4BF] font-mono mt-2 uppercase">PDF, PPTX, Images, GIFs, TXT</p>
+                            </div>
+
+                            <!-- Selected File Information -->
+                            <div id="selected-file-details" class="hidden p-3.5 bg-[#11222E]/30 border border-[#1B364A]/60 rounded-xl space-y-2.5">
+                                <div class="flex justify-between items-center text-[10px] font-mono">
+                                    <span class="text-gray-400 font-bold">Selected File:</span>
+                                    <span id="detail-filename" class="text-white font-extrabold max-w-[130px] truncate">Document.pdf</span>
+                                </div>
+                                <div class="flex justify-between items-center text-[10px] font-mono">
+                                    <span class="text-gray-400 font-bold">Size:</span>
+                                    <span id="detail-size" class="text-teal-400 font-bold">1.2 MB</span>
+                                </div>
+                                <div class="flex justify-between items-center text-[10px] font-mono">
+                                    <span class="text-gray-400 font-bold">Format detected:</span>
+                                    <span id="detail-type" class="text-indigo-400 font-bold uppercase">PDF</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button onclick="triggerFileIndex()" id="btn-vectorise-asset" class="w-full py-4 bg-gradient-to-r from-[#0D9488] to-[#6366F1] hover:from-[#0fbdae] hover:to-[#7a7df3] text-white rounded-xl text-xs font-black tracking-widest shadow-lg shadow-[#0D9488]/10 active:scale-[0.99] transition transform duration-150 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed" disabled>
+                        ⚡ VECTORISE & INDEX ASSET
+                    </button>
+                </div>
+
+                <!-- RIGHT PANEL: INDEXED ASSET LOGS -->
+                <div class="lg:col-span-2 bg-[#0B0F19]/80 p-6 rounded-2xl border border-[#152035]/80 shadow-lg space-y-4 hover:border-[#1B364A]/60 transition-all duration-300 backdrop-blur-md flex flex-col justify-between">
+                    <div>
+                        <div class="flex justify-between items-center border-b border-[#152035]/60 pb-3.5 mb-4">
+                            <h3 class="text-xs font-bold uppercase tracking-wider text-gray-300 flex items-center gap-2">
+                                📚 Active Multi-Format Asset Index (pgvector)
+                            </h3>
+                            <span class="text-[9px] font-mono text-[#2DD4BF] bg-[#11222E] px-2 py-0.5 rounded border border-[#1B364A]/60 uppercase tracking-widest" id="dam-count">3 Files Active</span>
+                        </div>
+
+                        <!-- DYNAMIC GRID OF INDEXED FILES -->
+                        <div id="dam-assets-list" class="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[460px] overflow-y-auto pr-1">
+                            <!-- Preloaded defaults, will render dynamically -->
+                        </div>
+                    </div>
+
+                    <!-- TEST SEMANTIC VECTOR MATCH -->
+                    <div class="p-4 bg-[#070B13] rounded-xl border border-[#152035] mt-4 flex items-center gap-3">
+                        <span class="h-2 w-2 rounded-full bg-[#0D9488] animate-pulse"></span>
+                        <p class="text-[11px] text-gray-400 font-medium">
+                            Once indexed, any prompt run in the main Campaign Pipeline matching key features will ground its outputs directly using your custom vector context!
+                        </p>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+    </main>
+
+    <!-- CORE TELEMETRY & GATEWAY DISPATCH STATE MACHINE -->
+    <script>
+        // --- PRODUCTION-READY AUTOSWITCH GATEWAY URL ---
+        const DEPLOYED_BACKEND_URL = (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") 
+            ? "http://127.0.0.1:8000" 
+            : window.location.origin;
+
+        const industryPresets = {
+            automotive: {
+                presets: [
+                    {
+                        label: "🚗 Roadster Launch",
+                        text: "Launch an online and local push notification sequence for our new Aura Roadster hybrid-electric vehicle in the London sector, highlighting its intelligent dual powertrain and advanced low-emission urban cruise modes."
+                    },
+                    {
+                        label: "🛠️ Premium Care Deal",
+                        text: "Generate a national campaign promoting our premium all-weather smart tire package, offering forecourt loyalty club drivers double points and a free vehicle safety check."
+                    }
+                ]
+            },
+            cpg: {
+                presets: [
+                    {
+                        label: "🛍️ Forecourt Cafe Promo",
+                        text: "Generate an autumn forecourt café promotion across the UK offering a 15% discount on our organic artisan coffee and hot breakfast wraps, targeting early morning commuters."
+                    },
+                    {
+                        label: "🌱 Organic Wash Launch",
+                        text: "Launch a digital ad campaign promoting our new biodegradable plant-based surface cleaners at retail stations, highlighting zero plastic container waste and eco-certified ingredients."
+                    }
+                ]
+            },
+            energy: {
+                presets: [
+                    {
+                        label: "⚡ Smart Battery Rollout",
+                        text: "Create a customer informational sequence for our next-generation home solar integration batteries, emphasizing real-time home energy consumption tracking and load-balancing grid efficiency."
+                    },
+                    {
+                        label: "☀️ Regional Solar Offer",
+                        text: "Launch a regional campaign for our new residential solar panels, offering a 10% discount on local installation services and highlighting household carbon footprint reduction."
+                    }
+                ]
+            },
+            tech: {
+                presets: [
+                    {
+                        label: "💻 5G High-Speed WiFi",
+                        text: "Create a local push notification and email sequence for our new 5G ultra-fast smart home routers, offering a free 3-month trial on local smart security hub integrations."
+                    },
+                    {
+                        label: "🔒 Encrypted Cloud Backup",
+                        text: "Launch a targeted B2B campaign for our secure enterprise cloud backup solutions, emphasizing 99.99% operational uptime and strict privacy compliance for local businesses."
+                    }
+                ]
+            }
+        };
+
+        // Track custom indexed assets in local state for seamless demonstration
+        const localVectorLibrary = [
+            {
+                filename: "Aura_Brand_Guidelines_v4.pdf",
+                file_type: "pdf",
+                content_chunk: "Aura brand colors are defined by deep Teal (#0D9488) representing structure, and Royal Indigo (#6366F1) representing creative freedom.",
+                metadata: { category: "branding", page: 12 },
+                similarity: 0.9421
+            },
+            {
+                filename: "Q3_CPG_Cafes_Campaign_Presentation.pptx",
+                file_type: "ppt",
+                content_chunk: "Forecourt cafes showed a 14% increase in commuter retention when morning promotions paired hot wraps with organic artisan coffee.",
+                metadata: { category: "marketing", slide: 8 },
+                similarity: 0.8912
+            },
+            {
+                filename: "Roadster_Product_Specs_Sheet.pdf",
+                file_type: "pdf",
+                content_chunk: "The Aura Roadster hybrid-electric drivetrain achieves zero urban emission cruise modes using smart battery load balancing.",
+                metadata: { category: "engineering", page: 4 },
+                similarity: 0.8654
+            }
+        ];
+
+        let activeIndustry = "automotive";
+
+        // Navigation Controller
+        function switchTab(viewName) {
+            const containers = {
+                campaign: document.getElementById("campaign-view-container"),
+                compliance: document.getElementById("compliance-view-container"),
+                dam: document.getElementById("dam-view-container")
+            };
+            const navButtons = {
+                campaign: document.getElementById("btn-nav-campaign"),
+                compliance: document.getElementById("btn-nav-compliance"),
+                dam: document.getElementById("btn-nav-dam")
+            };
+
+            // Switch layout visibility
+            Object.keys(containers).forEach(key => {
+                if (key === viewName) {
+                    containers[key].classList.remove("hidden");
+                } else {
+                    containers[key].classList.add("hidden");
+                }
+            });
+
+            // Update sidebar buttons styling
+            Object.keys(navButtons).forEach(key => {
+                if (key === viewName) {
+                    navButtons[key].className = "w-full flex items-center gap-3 px-4 py-3 bg-[#11222E]/60 text-[#2DD4BF] rounded-xl text-xs font-semibold border border-[#1B364A]/60 shadow-sm transition-all duration-200 cursor-pointer";
+                    navButtons[key].querySelector('svg').classList.add('text-[#2DD4BF]');
+                } else {
+                    navButtons[key].className = "w-full flex items-center gap-3 px-4 py-3 text-gray-400 hover:bg-[#11222E]/30 hover:text-gray-200 rounded-xl text-xs font-semibold transition-all duration-200 cursor-pointer";
+                    navButtons[key].querySelector('svg').classList.remove('text-[#2DD4BF]');
+                }
+            });
+
+            // Update Global Header Titles
+            const titleEl = document.getElementById("header-view-title");
+            const descEl = document.getElementById("header-view-desc");
+            if (viewName === 'campaign') {
+                titleEl.textContent = "Agentic Content Supply Chain Cockpit";
+                descEl.textContent = "Symmetrical side-by-side LLM strategic profile comparison and UK ASA regulatory check verification panel.";
+            } else if (viewName === 'compliance') {
+                titleEl.textContent = "Compliance Sandbox";
+                descEl.textContent = "Advertising Standards Authority (ASA) regulatory scanning simulation suite.";
+            } else if (viewName === 'dam') {
+                titleEl.textContent = "pgvector Digital Asset Library (DAM)";
+                descEl.textContent = "Multimodal vector grounding, live indexing pipelines, and semantic cosine similarity search.";
+            }
+        }
+
+        // DAM Rendering & Upload Core
+        function renderDamAssets() {
+            const listContainer = document.getElementById("dam-assets-list");
+            if (!listContainer) return;
+            listContainer.innerHTML = "";
+
+            document.getElementById("dam-count").textContent = `${localVectorLibrary.length} Files Active`;
+
+            localVectorLibrary.forEach((asset, idx) => {
+                const card = document.createElement("div");
+                card.className = "bg-[#070B13] border border-[#152035] hover:border-[#0D9488]/40 p-4 rounded-xl shadow-md transition-all duration-200 flex flex-col justify-between h-[135px]";
+                
+                const icon = asset.file_type === 'pdf' ? '📄' : (asset.file_type === 'ppt' ? '📊' : (asset.file_type === 'image' ? '🖼' : '📝'));
+                
+                card.innerHTML = `
+                    <div>
+                        <div class="flex justify-between items-start">
+                            <span class="text-xs font-extrabold text-white truncate max-w-[170px]" title="${asset.filename}">${icon} ${asset.filename}</span>
+                            <span class="text-[8px] font-mono text-gray-500 uppercase bg-[#0B0F19] border border-[#152035] px-1.5 py-0.5 rounded">${asset.file_type}</span>
+                        </div>
+                        <p class="text-[10px] text-gray-400 mt-2 line-clamp-3 leading-relaxed font-medium">"${asset.content_chunk}"</p>
+                    </div>
+                    <div class="flex justify-between items-center border-t border-[#152035]/60 pt-2.5 mt-2">
+                        <span class="text-[8px] font-bold text-teal-500 font-mono tracking-widest uppercase">768-Dim Vectorised</span>
+                        <span class="text-[9px] font-mono font-bold text-gray-500">HNSW Index</span>
+                    </div>
+                `;
+                listContainer.appendChild(card);
+            });
+        }
+
+        // Setup Drag & Drop File Listeners
+        let uploadedFile = null;
+
+        document.addEventListener("DOMContentLoaded", () => {
+            const dropZone = document.getElementById("drop-zone");
+            const fileInput = document.getElementById("file-input");
+
+            if (dropZone && fileInput) {
+                // Click to browse
+                dropZone.addEventListener("click", () => fileInput.click());
+
+                // Handle file selection
+                fileInput.addEventListener("change", (e) => {
+                    if (e.target.files.length > 0) {
+                        handleSelectedFile(e.target.files[0]);
+                    }
+                });
+
+                // Drag and drop styles & actions
+                dropZone.addEventListener("dragover", (e) => {
+                    e.preventDefault();
+                    dropZone.classList.add("border-[#0D9488]", "bg-[#0D9488]/10");
+                });
+
+                ["dragleave", "dragend"].forEach(type => {
+                    dropZone.addEventListener(type, () => {
+                        dropZone.classList.remove("border-[#0D9488]", "bg-[#0D9488]/10");
+                    });
+                });
+
+                dropZone.addEventListener("drop", (e) => {
+                    e.preventDefault();
+                    dropZone.classList.remove("border-[#0D9488]", "bg-[#0D9488]/10");
+                    if (e.dataTransfer.files.length > 0) {
+                        handleSelectedFile(e.dataTransfer.files[0]);
+                    }
+                });
+            }
+        });
+
+        function handleSelectedFile(file) {
+            uploadedFile = file;
+            
+            const details = document.getElementById("selected-file-details");
+            const filenameEl = document.getElementById("detail-filename");
+            const sizeEl = document.getElementById("detail-size");
+            const typeEl = document.getElementById("detail-type");
+            const btn = document.getElementById("btn-vectorise-asset");
+
+            if (details && filenameEl && sizeEl && typeEl && btn) {
+                filenameEl.textContent = file.name;
+                
+                // Format size
+                const sizeKB = file.size / 1024;
+                sizeEl.textContent = sizeKB > 1024 
+                    ? `${(sizeKB / 1024).toFixed(1)} MB` 
+                    : `${sizeKB.toFixed(1)} KB`;
+                
+                // Format file format
+                const ext = file.name.split(".").pop().toLowerCase();
+                typeEl.textContent = ext.toUpperCase();
+
+                details.classList.remove("hidden");
+                btn.disabled = false;
+            }
+        }
+
+        async function triggerFileIndex() {
+            if (!uploadedFile) return;
+
+            const btn = document.getElementById("btn-vectorise-asset");
+            if (btn) {
+                btn.disabled = true;
+                btn.textContent = "⚡ VECTORISING & INDEXING...";
+            }
+
+            try {
+                // Formulate multipart form payload for direct backend parsing!
+                const formData = new FormData();
+                formData.append("file", uploadedFile);
+
+                const res = await fetch(`${DEPLOYED_BACKEND_URL}/api/v1/assets/upload`, {
+                    method: "POST",
+                    body: formData
+                });
+
+                if (!res.ok) {
+                    throw new Error("Vector DB API returned non-ok status code.");
+                }
+
+                // Add to our frontend local state immediately for instant feedback
+                localVectorLibrary.unshift({
+                    filename,
+                    file_type: filetype,
+                    content_chunk: content,
+                    metadata: { source: "user-upload" },
+                    similarity: 0.9500
+                });
+
+                // Clear input form
+                document.getElementById("dam-filename").value = "";
+                document.getElementById("dam-content").value = "";
+
+                // Re-render
+                renderDamAssets();
+                alert(`Asset successfully vectorized & stored! ${filename} is now active in pgvector.`);
+
+            } catch(e) {
+                console.error(e);
+                alert("Failed to vectorise asset. Please make sure the backend is active.");
+            }
+        }
+
+        // Initialize presets & DAM list
+        renderDamAssets();
+
+        function changeIndustry(industryKey) {
+            activeIndustry = industryKey;
+            
+            // 1. Update tab styling
+            const tabs = document.querySelectorAll(".industry-tab");
+            tabs.forEach(tab => {
+                tab.className = "industry-tab px-3.5 py-2.5 bg-[#11222E]/60 border border-[#152035] hover:border-[#6366F1] hover:text-gray-200 text-gray-400 text-[10px] font-bold rounded-xl flex items-center justify-center gap-1.5 transition-all duration-200 cursor-pointer";
+            });
+            
+            const activeTab = document.getElementById("ind-btn-" + industryKey);
+            if (activeTab) {
+                activeTab.className = "industry-tab px-3.5 py-2.5 bg-[#0D9488]/20 border border-[#0D9488] hover:border-[#2DD4BF] text-[#2DD4BF] text-[10px] font-bold rounded-xl flex items-center justify-center gap-1.5 transition-all duration-200 cursor-pointer";
+            }
+            
+            // 2. Render presets dynamically
+            renderPresets();
+            
+            // 3. Inject first preset as default
+            injectIndustryPreset(0);
+        }
+
+        function renderPresets() {
+            const container = document.getElementById("presets-container");
+            if (!container) return;
+            container.innerHTML = "";
+            
+            const list = industryPresets[activeIndustry].presets;
+            list.forEach((item, index) => {
+                const btn = document.createElement("button");
+                btn.className = "px-3.5 py-1.5 text-[11px] bg-[#11222E]/60 hover:bg-[#1B364A]/80 text-[#2DD4BF] rounded-lg border border-[#1B364A]/60 hover:border-[#2DD4BF]/50 font-bold transition-all duration-200 cursor-pointer";
+                btn.textContent = item.label;
+                btn.onclick = () => injectIndustryPreset(index);
+                container.appendChild(btn);
+            });
+        }
+
+        function injectIndustryPreset(index) {
+            const block = document.getElementById("campaign-brief");
+            const list = industryPresets[activeIndustry].presets;
+            if (block && list[index]) {
+                block.value = list[index].text;
+            }
+        }
+
+        // Initialize default industry state
+        changeIndustry('automotive');
+
+        async function initiateAgentPipeline() {
+            const briefInput = document.getElementById("campaign-brief").value.trim();
+            const telemetryPanel = document.getElementById("pipeline-telemetry-panel");
+            const outputArea = document.getElementById("production-output-area");
+            const errorBanner = document.getElementById("error-banner");
+            const ragBanner = document.getElementById("rag-retrieval-banner");
+
+            if (!briefInput) { 
+                alert("Please supply a campaign brief before running the comparison dashboard."); 
+                return; 
+            }
+
+            // Reset UI components to clean state
+            errorBanner.classList.add("hidden");
+            errorBanner.classList.remove("flex");
+            outputArea.classList.add("hidden");
+            ragBanner.classList.add("hidden");
+            telemetryPanel.classList.remove("hidden");
+            resetVisualTelemetryTrackers();
+
+            try {
+                // Step 1 Simulation triggered in parallel
+                await delayProgressStep('step-1', 'step-2', 1200);
+                
+                // Step 2 Simulation triggered in parallel
+                await delayProgressStep('step-2', 'step-3', 1000);
+
+                // Dispatch to FastAPI comparison gateway
+                const response = await fetch(`${DEPLOYED_BACKEND_URL}/api/v1/orchestrate`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ brief: briefInput })
+                });
+
+                if (!response.ok) { 
+                    throw new Error(`Orchestration Gateway returned response status ${response.status}. Make sure the backend server is running.`); 
+                }
+                const payload = await response.json();
+
+                // Step 3 completed
+                setStepComplete('step-3');
+
+                // Render RAG Grounding Banner if pgvector matched an asset
+                if (payload.retrieved_asset) {
+                    const match = payload.retrieved_asset;
+                    const filenameEl = document.getElementById("rag-filename");
+                    const chunkEl = document.getElementById("rag-chunk");
+                    const scoreEl = document.getElementById("rag-score");
+                    
+                    const icon = match.file_type === 'pdf' ? '📄' : (match.file_type === 'ppt' ? '📊' : (match.file_type === 'image' ? '🖼' : '📝'));
+                    filenameEl.textContent = `${icon} ${match.filename}`;
+                    chunkEl.textContent = `"${match.content_chunk}"`;
+                    
+                    const scorePercentage = match.similarity ? `${(match.similarity * 100).toFixed(1)}%` : '94.2%';
+                    scoreEl.textContent = scorePercentage;
+                    
+                    ragBanner.classList.remove("hidden");
+                }
+
+                // Render both Flash (operational) and Pro (creative) dynamic outputs
+                renderModelData('flash', payload.flash);
+                renderModelData('pro', payload.pro);
+                
+                outputArea.classList.remove("hidden");
+
+            } catch(err) {
+                console.error(err);
+                document.getElementById("error-message").textContent = err.message || err;
+                errorBanner.classList.remove("hidden");
+                errorBanner.classList.add("flex");
+                telemetryPanel.classList.add("hidden");
+            }
+        }
+
+        function resetVisualTelemetryTrackers() {
+            ['flash', 'pro'].forEach(stream => {
+                const step1 = document.getElementById(`step-1-${stream}`);
+                const colorClass = stream === 'flash' ? '#0D9488' : '#6366F1';
+                const spinnerClass = stream === 'flash' ? 'border-[#0D9488]' : 'border-[#6366F1]';
+                
+                step1.className = `p-3 bg-[#070B13] rounded-xl border border-[${colorClass}]/40 flex items-center gap-2.5 active-telemetry shadow-md`;
+                step1.innerHTML = `<div class="spinner h-3.5 w-3.5 border-2 ${spinnerClass} border-t-transparent rounded-full animate-spin"></div><span class="text-[10px] font-bold text-gray-200">A: Localize</span>`;
+                
+                ['step-2', 'step-3'].forEach(id => {
+                    const step = document.getElementById(`${id}-${stream}`);
+                    const label = id === 'step-2' ? 'B: Visuals' : 'C: Compliance';
+                    step.className = "p-3 bg-[#070B13] rounded-xl border border-[#152035] flex items-center gap-2.5 opacity-40";
+                    step.innerHTML = `<div class="dot h-1.5 w-1.5 rounded-full bg-gray-600"></div><span class="text-[10px] font-bold text-gray-500">${label}</span>`;
+                });
+            });
+        }
+
+        function delayProgressStep(currentId, nextId, timeout) {
+            return new Promise(resolve => {
+                setTimeout(() => {
+                    ['flash', 'pro'].forEach(stream => {
+                        setStreamStepComplete(currentId, stream);
+                        const nextRow = document.getElementById(`${nextId}-${stream}`);
+                        if (nextRow) {
+                            const colorClass = stream === 'flash' ? '#0D9488' : '#6366F1';
+                            const spinnerClass = stream === 'flash' ? 'border-[#0D9488]' : 'border-[#6366F1]';
+                            
+                            nextRow.classList.remove("opacity-40");
+                            nextRow.className = `p-3 bg-[#070B13] rounded-xl border border-[${colorClass}]/40 flex items-center gap-2.5 active-telemetry shadow-md`;
+                            const stepLabel = nextId === 'step-2' ? 'B: Visuals' : 'C: Compliance';
+                            nextRow.innerHTML = `<div class="spinner h-3.5 w-3.5 border-2 ${spinnerClass} border-t-transparent rounded-full animate-spin"></div><span class="text-[10px] font-bold text-gray-200">${stepLabel}</span>`;
+                        }
+                    });
+                    resolve();
+                }, timeout);
+            });
+        }
+
+        // Shared Completed State Styles
+        function setStepComplete(id) {
+            ['flash', 'pro'].forEach(stream => {
+                setStreamStepComplete(id, stream);
+            });
+        }
+
+        function setStreamStepComplete(id, stream) {
+            const row = document.getElementById(`${id}-${stream}`);
+            if (row) {
+                const bgClass = stream === 'flash' ? 'bg-[#11222E]/40' : 'bg-[#17162A]/40';
+                const borderClass = stream === 'flash' ? 'border-[#1B364A]/50' : 'border-[#2B2A4F]/50';
+                const textColorClass = stream === 'flash' ? 'text-[#2DD4BF]' : 'text-[#818CF8]';
+                
+                row.className = `p-3 ${bgClass} rounded-xl border ${borderClass} flex items-center gap-2 ${textColorClass} shadow-md`;
+                const stepLabel = id === 'step-1' ? 'A: Localize' : (id === 'step-2' ? 'B: Visuals' : 'C: Compliance');
+                row.innerHTML = `<svg class="h-3.5 w-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" /></svg><span class="text-[10px] font-extrabold">${stepLabel} Done</span>`;
+            }
+        }
+
+        // Symmetrical Data Injection per Model pane
+        function renderModelData(stream, data) {
+            const safeSetText = (id, txt) => { 
+                const el = document.getElementById(`${id}-${stream}`); 
+                if (el) el.textContent = txt; 
+            };
+
+            safeSetText("out-email-subject", data.localized_content.email_subject);
+            safeSetText("out-email-body", data.localized_content.email_body);
+            safeSetText("out-push", data.localized_content.push_notification);
+            safeSetText("out-banner", data.localized_content.in_app_banner);
+            safeSetText("out-risk-summary", data.compliance_report.executive_summary);
+            safeSetText("out-asset-token", data.asset_theme_token);
+
+            // Compliance Badge Configuration
+            const badgeWrapper = document.getElementById(`compliance-badge-wrapper-${stream}`);
+            if (badgeWrapper) {
+                if (data.compliance_report.status === "APPROVED") {
+                    badgeWrapper.innerHTML = `<div class="w-full text-center py-2.5 bg-[#11222E]/60 text-[#2DD4BF] font-extrabold border border-[#1B364A]/60 rounded-xl text-[10px] tracking-widest shadow-md">🟢 COMPLIANT — PASSED ASA AUDIT</div>`;
+                } else {
+                    badgeWrapper.innerHTML = `<div class="w-full text-center py-2.5 bg-amber-950/30 text-amber-500 font-extrabold border border-amber-900/30 rounded-xl text-[10px] tracking-widest shadow-md">⚠️ REGULATORY RISK AUDIT REQUIRED</div>`;
+                }
+            }
+
+            // Checklist Verification Map Injection
+            const setCheckmarkStatus = (id, passed, label) => {
+                const el = document.getElementById(`${id}-${stream}`);
+                if (el) {
+                    if (passed) {
+                        el.className = "flex items-center gap-2.5 text-[#2DD4BF] font-bold";
+                        el.innerHTML = `<svg class="h-3.5 w-3.5 text-[#2DD4BF]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" /></svg><span>${label}</span>`;
+                    } else {
+                        el.className = "flex items-center gap-2.5 text-amber-500 font-bold";
+                        el.innerHTML = `<svg class="h-3.5 w-3.5 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg><span>${label} (Failed)</span>`;
+                    }
+                }
+            };
+            setCheckmarkStatus("chk-greenwashing", data.compliance_report.asa_greenwashing_passed, "ASA Environmental Language Verification");
+            setCheckmarkStatus("chk-pricing", data.compliance_report.clear_pricing_disclosure, "Pricing Transparency Disclosures");
+
+            // Mapping Design theme tokens to dynamic Unsplash visual contexts
+            const imageMap = {
+                "ev-charging": "https://images.unsplash.com/photo-1563720223185-11003d516935?auto=format&fit=crop&w=600&q=80",
+                "aura-cafe": "https://images.unsplash.com/photo-1509042239860-f550ce710b93?auto=format&fit=crop&w=600&q=80",
+                "lubricants": "https://images.unsplash.com/photo-1616788494707-ec28f08d05a1?auto=format&fit=crop&w=600&q=80",
+                "fleet-premium": "https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?auto=format&fit=crop&w=600&q=80"
+            };
+
+            const imgContainer = document.getElementById(`dynamic-image-container-${stream}`);
+            if (imgContainer) {
+                const targetUrl = imageMap[data.asset_theme_token] || imageMap["ev-charging"];
+                imgContainer.style.backgroundImage = `url('${targetUrl}')`;
+                imgContainer.classList.remove("grayscale");
+                imgContainer.classList.add("brightness-90");
+            }
+        }
+    </script>
+</body>
+</html>

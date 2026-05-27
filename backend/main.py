@@ -2,7 +2,8 @@ import os
 import json
 import asyncio
 import io
-from fastapi import FastAPI, HTTPException, File, UploadFile
+from typing import Optional, List
+from fastapi import FastAPI, HTTPException, File, UploadFile, Query
 from fastapi.responses import HTMLResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
@@ -65,6 +66,21 @@ class ComparisonPayload(BaseModel):
     flash: MultiAgentPayload = Field(..., description="Orchestration output from gemini-2.5-flash.")
     pro: MultiAgentPayload = Field(..., description="Orchestration output from gemini-2.5-flash (alternative profile).")
     retrieved_asset: dict = Field(default=None, description="The semantic asset surfaced by pgvector during search.")
+
+# --- BRIEFING MODULE SCHEMAS ---
+class BriefingRequest(BaseModel):
+    campaign_name: str = Field(..., example="Autumn Forecourt Café Push")
+    target_market: Optional[str] = Field(default="UK", example="UK")
+    channels: List[str] = Field(default=[], example=["email", "push", "in_app"])
+    deadline: Optional[str] = Field(default=None, example="2026-06-15")
+    budget_tier: Optional[str] = Field(default="standard", example="premium")
+    detailed_brief: str = Field(..., example="We need a full multi-channel campaign promoting our new organic artisan coffee range...")
+    priority: Optional[str] = Field(default="normal", example="high")
+    submitted_by: Optional[str] = Field(default="client", example="Vishesh Agarwal")
+
+class BriefingStatusUpdate(BaseModel):
+    new_status: str = Field(..., example="in_review")
+    hub_notes: Optional[str] = Field(default=None, example="Assigned to creative team.")
 
 
 # --- ASYNCHRONOUS PIPELINE HELPER ---
@@ -336,6 +352,44 @@ async def orchestrate_content_supply_chain(payload: CampaignRequest):
             status_code=500, 
             detail=f"Agentic Pipeline Comparison Execution Failure: {str(e)}"
         )
+
+# --- BRIEFING MODULE ENDPOINTS ---
+
+@app.post("/api/v1/briefings")
+async def submit_briefing(payload: BriefingRequest):
+    """Submit a new campaign briefing request for the hub team."""
+    try:
+        data = payload.model_dump()
+        result = db.insert_briefing(data)
+        if result:
+            return {"status": "success", "briefing": result}
+        raise HTTPException(status_code=500, detail="Failed to store briefing in database.")
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Briefing submission failed: {str(e)}")
+
+@app.get("/api/v1/briefings")
+async def list_briefings(status: Optional[str] = Query(default=None, description="Filter by status: submitted, in_review, in_progress, delivered")):
+    """List all briefing requests, optionally filtered by status."""
+    try:
+        results = db.list_briefings(status_filter=status)
+        return {"status": "success", "briefings": results, "total": len(results)}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to retrieve briefings: {str(e)}")
+
+@app.patch("/api/v1/briefings/{briefing_id}/status")
+async def update_briefing_status(briefing_id: str, payload: BriefingStatusUpdate):
+    """Update the status of a briefing (designed for hub team admin panel)."""
+    try:
+        result = db.update_briefing_status(briefing_id, payload.new_status, payload.hub_notes)
+        if result:
+            return {"status": "success", "briefing": result}
+        raise HTTPException(status_code=404, detail=f"Briefing '{briefing_id}' not found or invalid status.")
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to update briefing: {str(e)}")
 
 @app.get("/health")
 async def health_check():

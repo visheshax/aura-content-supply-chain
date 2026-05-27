@@ -87,7 +87,7 @@ class BriefingExtract(BaseModel):
     campaign_name: str = Field(..., description="A concise, compelling campaign name derived from the document content.")
     target_market: str = Field(default="UK", description="The primary target market or geographic region. Must be one of: UK, EU, US, APAC, Global.")
     channels: List[str] = Field(default=[], description="Marketing channels mentioned or implied. Each must be one of: email, push, in_app, social, print, ooh.")
-    deadline: Optional[str] = Field(default=None, description="Any deadline or target date mentioned, in YYYY-MM-DD format. null if not found.")
+    deadline: str = Field(default="", description="Any deadline or target date mentioned, in YYYY-MM-DD format. Return an empty string if not found.")
     budget_tier: str = Field(default="standard", description="Inferred budget tier based on scope and scale. Must be one of: standard, premium, enterprise.")
     detailed_brief: str = Field(..., description="A comprehensive campaign brief summarising the key objectives, target audience, messaging strategy, creative direction, and deliverables from the document.")
     priority: str = Field(default="normal", description="Inferred priority level. Must be one of: low, normal, high, urgent.")
